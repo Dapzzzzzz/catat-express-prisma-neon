@@ -1,0 +1,348 @@
+<!doctype html>
+<html lang="id">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <meta
+      name="description"
+      content="Catat: kelola judul, tenggat, prioritas, dan status tugas dengan Express REST API."
+    />
+    <title>Tugas | Catat</title>
+    <script src="theme.js"></script>
+    <link rel="stylesheet" href="tokens.css" />
+    <link rel="stylesheet" href="components.css" />
+    <link rel="stylesheet" href="app.css" />
+    <script src="app.js" defer></script>
+  </head>
+  <body>
+    <a href="#main" class="skip-link">Lewati ke daftar tugas</a>
+    <svg class="visually-hidden" aria-hidden="true" xmlns="http://www.w3.org/2000/svg">
+      <symbol id="icon-list" viewBox="0 0 24 24"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="m8 12 3 3 5-6"/></symbol>
+      <symbol id="icon-open" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/></symbol>
+      <symbol id="icon-progress" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="M12 8v4l3 2"/></symbol>
+      <symbol id="icon-done" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8"/><path d="m8.5 12 2.5 2.5 4.5-5"/></symbol>
+      <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="10.5" cy="10.5" r="5.5"/><path d="m15 15 4 4"/></symbol>
+      <symbol id="icon-plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+    </svg>
+    <div class="workspace">
+      <aside class="index-panel" aria-label="Filter tugas">
+        <a class="wordmark app-brand" href="/" aria-label="Catat, beranda"><span class="brand-mark" aria-hidden="true">C</span>Catat</a>
+        <p class="index-heading">Tugas</p>
+        <div class="view-filters" role="group" aria-label="Pilih status tugas">
+          <button
+            class="view-button selected"
+            data-view="Semua"
+            aria-pressed="true"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#icon-list"/></svg><span>Semua tugas</span><span data-count="Semua">0</span></button
+          ><button
+            class="view-button"
+            data-view="Belum mulai"
+            aria-pressed="false"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#icon-open"/></svg><span>Belum mulai</span
+            ><span data-count="Belum mulai">0</span></button
+          ><button
+            class="view-button"
+            data-view="Dikerjakan"
+            aria-pressed="false"
+          >
+            <svg class="icon" aria-hidden="true"><use href="#icon-progress"/></svg><span>Dikerjakan</span
+            ><span data-count="Dikerjakan">0</span></button
+          ><button class="view-button" data-view="Selesai" aria-pressed="false">
+            <svg class="icon" aria-hidden="true"><use href="#icon-done"/></svg><span>Selesai</span><span data-count="Selesai">0</span>
+          </button>
+        </div>
+        <div class="index-progress">
+          <label for="completion-progress">Penyelesaian</label
+          ><progress id="completion-progress" value="0" max="1">0%</progress>
+          <p id="completion-text">Memuat progres...</p>
+        </div>
+        <div class="sidebar-tools">
+          <button class="text-button" id="open-guide">Panduan</button>
+          <button class="text-button" id="theme-toggle" aria-pressed="false">Mode gelap</button>
+          <p class="index-source"><span aria-hidden="true"></span>Neon Postgres</p>
+        </div>
+      </aside>
+
+      <main id="main">
+        <section class="page-heading">
+          <div>
+            <h1>Tugas</h1>
+            <p class="page-date" id="today-date"></p>
+          </div>
+          <button class="button primary" id="add-task">
+            <svg class="icon" aria-hidden="true"><use href="#icon-plus"/></svg>Tambah tugas
+          </button>
+        </section>
+        <p class="page-summary"><span id="heading-summary">Memuat tugas...</span><span class="sample-note">Data contoh</span></p>
+        <div class="tasks-panel">
+        <div class="list-tools">
+          <label class="search-control" for="search"
+            ><span class="visually-hidden">Cari judul atau catatan tugas</span
+            ><svg class="icon" aria-hidden="true"><use href="#icon-search"/></svg
+            ><input
+              id="search"
+              type="search"
+              placeholder="Cari judul atau catatan..."
+          /></label>
+          <div class="tool-filters">
+            <label for="category-filter"
+              ><span class="visually-hidden">Filter kategori</span
+              ><select id="category-filter">
+                <option value="">Semua kategori</option>
+              </select></label
+            ><label for="sort"
+              ><span class="visually-hidden">Urutkan tugas</span
+              ><select id="sort">
+                <option value="deadline">Tenggat terdekat</option>
+                <option value="priority">Prioritas tertinggi</option>
+                <option value="newest">Terbaru</option>
+              </select></label
+            ><button class="text-button" id="reload">Muat ulang</button>
+          </div>
+        </div>
+        <div id="load-error" class="notice error" role="alert" hidden></div>
+        <div class="list-heading">
+          <span id="view-title">Semua tugas</span
+          ><span id="result-count" role="status">Memuat...</span
+          ><button class="text-button" id="reset-filters" hidden>
+            Reset filter
+          </button>
+        </div>
+        <section
+          class="task-list"
+          id="task-list"
+          aria-label="Daftar tugas"
+          aria-busy="true"
+        >
+          <div class="list-state" role="status">
+            <h2>Memuat tugas...</h2>
+            <p>Mengambil data dari server.</p>
+          </div>
+        </section>
+        </div>
+        <div
+          id="operation-message"
+          class="operation-message"
+          role="status"
+          aria-live="polite"
+          hidden
+        >
+          <div>
+            <strong id="operation-title"></strong>
+            <p id="operation-description"></p>
+          </div>
+          <button
+            id="dismiss-message"
+            class="close-button"
+            aria-label="Tutup pesan"
+          >
+            ×
+          </button>
+        </div>
+        <footer class="site-footer">
+          <span>Catat / Manajemen tugas</span>
+          <div class="footer-links">
+            <a href="design-system.html">Sistem desain</a
+            ><button class="text-button" id="open-api">Lihat REST API</button>
+          </div>
+        </footer>
+      </main>
+    </div>
+
+    <dialog id="task-dialog" aria-labelledby="form-title">
+      <form id="task-form">
+        <header class="dialog-heading">
+          <div>
+            <h2 id="form-title">Tambah tugas</h2>
+            <p id="form-description">Tentukan apa yang perlu dikerjakan.</p>
+          </div>
+          <button
+            class="close-button"
+            type="button"
+            data-close
+            aria-label="Tutup form"
+          >
+            ×
+          </button>
+        </header>
+        <div class="dialog-body">
+          <div id="form-error" class="notice error" role="alert" hidden></div>
+          <label class="field" for="judul"
+            >Judul tugas (wajib)<input
+              id="judul"
+              name="judul"
+              required
+              minlength="3"
+              maxlength="100"
+              placeholder="Contoh: Selesaikan laporan praktikum"
+              autocomplete="off"
+          /></label>
+          <div class="form-pair">
+            <label class="field" for="kategori"
+              >Kategori (wajib)<input
+                id="kategori"
+                name="kategori"
+                required
+                minlength="2"
+                maxlength="40"
+                list="categories"
+                placeholder="Kuliah, pribadi, atau lainnya" /><datalist
+                id="categories"
+              ></datalist></label
+            ><label class="field" for="tenggat"
+              >Tenggat<input
+                id="tenggat"
+                name="tenggat"
+                type="date"
+                max="9999-12-31"
+              /><span class="field-note"
+                >Boleh kosong jika belum ditentukan.</span
+              ></label
+            >
+          </div>
+          <div class="form-pair">
+            <label class="field" for="prioritas"
+              >Prioritas<select id="prioritas" name="prioritas">
+                <option>Tinggi</option>
+                <option selected>Sedang</option>
+                <option>Rendah</option>
+              </select></label
+            ><label class="field" for="status"
+              >Status<select id="status" name="status">
+                <option>Belum mulai</option>
+                <option>Dikerjakan</option>
+                <option>Selesai</option>
+              </select></label
+            >
+          </div>
+          <label class="field" for="catatan"
+            >Catatan<textarea
+              id="catatan"
+              name="catatan"
+              maxlength="800"
+              rows="3"
+              placeholder="Detail tambahan jika diperlukan."
+            ></textarea>
+          </label>
+        </div>
+        <footer class="dialog-actions">
+          <button type="button" class="button" data-close>Batal</button
+          ><button type="submit" class="button primary" id="save-task">
+            Simpan tugas
+          </button>
+        </footer>
+      </form>
+    </dialog>
+
+    <dialog
+      id="delete-dialog"
+      class="delete-dialog"
+      aria-labelledby="delete-title"
+    >
+      <header class="dialog-heading">
+        <div>
+          <h2 id="delete-title">Hapus tugas ini?</h2>
+          <p>Tindakan ini tidak dapat dibatalkan.</p>
+        </div>
+        <button
+          class="close-button"
+          data-close
+          aria-label="Tutup konfirmasi hapus"
+        >
+          ×
+        </button>
+      </header>
+      <div class="dialog-body">
+        <p class="delete-task-title" id="delete-task-title"></p>
+        <div id="delete-error" class="notice error" role="alert" hidden></div>
+      </div>
+      <footer class="dialog-actions">
+        <button class="button" data-close>Batal</button
+        ><button class="button danger" id="confirm-delete">Hapus tugas</button>
+      </footer>
+    </dialog>
+
+    <dialog id="guide-dialog" aria-labelledby="guide-title">
+      <header class="dialog-heading">
+        <div>
+          <h2 id="guide-title">Panduan Catat</h2>
+          <p>Kelola tugas dari satu daftar.</p>
+        </div>
+        <button class="close-button" data-close aria-label="Tutup panduan">
+          ×
+        </button>
+      </header>
+      <div class="dialog-body guide-body">
+        <ol>
+          <li>
+            <strong>Tambah:</strong> klik Tambah tugas, isi judul dan kategori,
+            lalu simpan. Tenggat dan catatan boleh kosong.
+          </li>
+          <li>
+            <strong>Edit:</strong> klik Edit pada tugas, sesuaikan data, lalu
+            Simpan perubahan.
+          </li>
+          <li>
+            <strong>Selesai:</strong> centang kotak tugas untuk menandai
+            selesai. Hilangkan centang untuk mengembalikannya ke Belum mulai.
+          </li>
+          <li>
+            <strong>Hapus:</strong> klik Hapus pada baris tugas, periksa
+            judulnya, lalu konfirmasi.
+          </li>
+          <li>
+            <strong>Temukan:</strong> gunakan filter status/kategori, pencarian,
+            atau urutan tenggat/prioritas.
+          </li>
+        </ol>
+        <p>
+          Enam tugas awal dibuat sebagai contoh untuk demo. Data ini bukan
+          agenda pribadi pengguna. Perubahan disimpan pada server lokal dan
+          tetap tersedia setelah server dijalankan ulang.
+        </p>
+      </div>
+    </dialog>
+
+    <dialog id="api-dialog" aria-labelledby="api-title">
+      <header class="dialog-heading">
+        <div>
+          <h2 id="api-title">REST API</h2>
+          <p>Empat method dipanggil langsung oleh frontend.</p>
+        </div>
+        <button class="close-button" data-close aria-label="Tutup REST API">
+          ×
+        </button>
+      </header>
+      <div class="dialog-body api-body">
+        <dl>
+          <div>
+            <dt>GET /api/tugas</dt>
+            <dd>Menampilkan semua tugas. Status 200.</dd>
+          </div>
+          <div>
+            <dt>POST /api/tugas</dt>
+            <dd>Menambahkan tugas dari form. Status 201.</dd>
+          </div>
+          <div>
+            <dt>PUT /api/tugas/:id</dt>
+            <dd>Mengubah tugas atau status selesai. Status 200.</dd>
+          </div>
+          <div>
+            <dt>DELETE /api/tugas/:id</dt>
+            <dd>Menghapus tugas setelah konfirmasi. Status 200.</dd>
+          </div>
+        </dl>
+        <p>
+          POST dan PUT mengirim JSON berisi judul, kategori, tenggat, prioritas,
+          status, dan catatan. PUT mengganti seluruh kolom tugas. Input tidak
+          valid menghasilkan 400 dan ID yang tidak ditemukan menghasilkan 404.
+        </p>
+        <a class="button" href="/api/tugas" target="_blank" rel="noopener"
+          >Buka data API</a
+        >
+      </div>
+    </dialog>
+  </body>
+</html>

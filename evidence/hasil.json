@@ -1,0 +1,176 @@
+{
+  "provider": "Neon PostgreSQL",
+  "table": "public.tugas",
+  "snapshots": [
+    {
+      "name": "02-db-sebelum-post",
+      "label": "Sebelum POST",
+      "sql": "SELECT id, judul, kategori, status, prioritas,\n       to_char(tenggat, 'YYYY-MM-DD') AS tenggat\nFROM public.tugas WHERE judul = $1;",
+      "parameters": [
+        "Uji CRUD: laporan praktikum"
+      ],
+      "rowCount": 0,
+      "rows": [],
+      "capturedAt": "10 Nov 2026, 19.23.57 WIB"
+    },
+    {
+      "name": "04-db-sesudah-post",
+      "label": "Sesudah POST",
+      "sql": "SELECT id, judul, kategori, status, prioritas,\n       to_char(tenggat, 'YYYY-MM-DD') AS tenggat\nFROM public.tugas WHERE id = $1;",
+      "parameters": [
+        8
+      ],
+      "rowCount": 1,
+      "rows": [
+        {
+          "id": 8,
+          "judul": "Uji CRUD: laporan praktikum",
+          "kategori": "Kuliah",
+          "status": "Belum mulai",
+          "prioritas": "Tinggi",
+          "tenggat": "2026-11-11"
+        }
+      ],
+      "capturedAt": "10 Nov 2026, 19.23.57 WIB"
+    },
+    {
+      "name": "06-db-sebelum-put",
+      "label": "Sebelum PUT",
+      "sql": "SELECT id, judul, kategori, status, prioritas,\n       to_char(tenggat, 'YYYY-MM-DD') AS tenggat\nFROM public.tugas WHERE id = $1;",
+      "parameters": [
+        8
+      ],
+      "rowCount": 1,
+      "rows": [
+        {
+          "id": 8,
+          "judul": "Uji CRUD: laporan praktikum",
+          "kategori": "Kuliah",
+          "status": "Belum mulai",
+          "prioritas": "Tinggi",
+          "tenggat": "2026-11-11"
+        }
+      ],
+      "capturedAt": "10 Nov 2026, 19.23.57 WIB"
+    },
+    {
+      "name": "08-db-sesudah-put",
+      "label": "Sesudah PUT",
+      "sql": "SELECT id, judul, kategori, status, prioritas,\n       to_char(tenggat, 'YYYY-MM-DD') AS tenggat\nFROM public.tugas WHERE id = $1;",
+      "parameters": [
+        8
+      ],
+      "rowCount": 1,
+      "rows": [
+        {
+          "id": 8,
+          "judul": "Uji CRUD: laporan siap dikumpulkan",
+          "kategori": "Kuliah",
+          "status": "Dikerjakan",
+          "prioritas": "Tinggi",
+          "tenggat": "2026-11-12"
+        }
+      ],
+      "capturedAt": "10 Nov 2026, 19.23.57 WIB"
+    },
+    {
+      "name": "10-db-sebelum-delete",
+      "label": "Sebelum DELETE",
+      "sql": "SELECT id, judul, kategori, status, prioritas,\n       to_char(tenggat, 'YYYY-MM-DD') AS tenggat\nFROM public.tugas WHERE id = $1;",
+      "parameters": [
+        8
+      ],
+      "rowCount": 1,
+      "rows": [
+        {
+          "id": 8,
+          "judul": "Uji CRUD: laporan siap dikumpulkan",
+          "kategori": "Kuliah",
+          "status": "Dikerjakan",
+          "prioritas": "Tinggi",
+          "tenggat": "2026-11-12"
+        }
+      ],
+      "capturedAt": "10 Nov 2026, 19.23.58 WIB"
+    },
+    {
+      "name": "12-db-sesudah-delete",
+      "label": "Sesudah DELETE",
+      "sql": "SELECT id, judul, kategori, status, prioritas,\n       to_char(tenggat, 'YYYY-MM-DD') AS tenggat\nFROM public.tugas WHERE id = $1;",
+      "parameters": [
+        8
+      ],
+      "rowCount": 0,
+      "rows": [],
+      "capturedAt": "10 Nov 2026, 19.23.58 WIB"
+    }
+  ],
+  "operations": [
+    {
+      "method": "GET",
+      "path": "/api/tugas",
+      "httpStatus": 200,
+      "total": 6
+    },
+    {
+      "method": "POST",
+      "path": "/api/tugas",
+      "httpStatus": 201,
+      "response": {
+        "message": "Tugas ditambahkan.",
+        "data": {
+          "id": 8,
+          "judul": "Uji CRUD: laporan praktikum",
+          "kategori": "Kuliah",
+          "catatan": "Catat hasil sebelum dan sesudah perubahan.",
+          "tenggat": "2026-11-11",
+          "prioritas": "Tinggi",
+          "status": "Belum mulai"
+        }
+      }
+    },
+    {
+      "method": "PUT",
+      "path": "/api/tugas/8",
+      "httpStatus": 200,
+      "response": {
+        "message": "Perubahan tugas tersimpan.",
+        "data": {
+          "id": 8,
+          "judul": "Uji CRUD: laporan siap dikumpulkan",
+          "kategori": "Kuliah",
+          "catatan": "Catat hasil sebelum dan sesudah perubahan.",
+          "tenggat": "2026-11-12",
+          "prioritas": "Tinggi",
+          "status": "Dikerjakan"
+        }
+      }
+    },
+    {
+      "method": "DELETE",
+      "path": "/api/tugas/8",
+      "httpStatus": 200,
+      "response": {
+        "message": "Tugas dihapus.",
+        "data": {
+          "id": 8,
+          "judul": "Uji CRUD: laporan siap dikumpulkan",
+          "kategori": "Kuliah",
+          "catatan": "Catat hasil sebelum dan sesudah perubahan.",
+          "tenggat": "2026-11-12",
+          "prioritas": "Tinggi",
+          "status": "Dikerjakan"
+        }
+      }
+    }
+  ],
+  "checks": [
+    "Jumlah GET sama dengan SELECT COUNT(*)",
+    "POST/PUT/DELETE dilakukan melalui UI",
+    "Enam snapshot berasal dari query langsung",
+    "Pencarian, tema gelap, Escape, dan 320/390/768/1024/1440 px diperiksa",
+    "Tidak ada pageerror"
+  ],
+  "database": "neondb",
+  "version": "17.11 (9045acd)"
+}

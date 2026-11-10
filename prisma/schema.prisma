@@ -1,0 +1,37 @@
+generator client {
+  provider               = "prisma-client"
+  output                 = "../generated/prisma"
+  moduleFormat           = "esm"
+  generatedFileExtension = "ts"
+  importFileExtension    = "ts"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Prioritas {
+  RENDAH @map("Rendah")
+  SEDANG @map("Sedang")
+  TINGGI @map("Tinggi")
+}
+
+enum StatusTugas {
+  BELUM_MULAI @map("Belum mulai")
+  DIKERJAKAN  @map("Dikerjakan")
+  SELESAI     @map("Selesai")
+}
+
+model Tugas {
+  id        Int         @id @default(autoincrement())
+  judul     String      @db.VarChar(100)
+  kategori  String      @db.VarChar(40)
+  tenggat   DateTime?   @db.Date
+  prioritas Prioritas   @default(SEDANG)
+  status    StatusTugas @default(BELUM_MULAI)
+  catatan   String      @default("") @db.VarChar(800)
+  dibuat    DateTime    @default(now()) @db.Timestamptz(3)
+  diperbarui DateTime   @updatedAt @db.Timestamptz(3)
+
+  @@map("tugas")
+}
